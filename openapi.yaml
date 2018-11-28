@@ -1,0 +1,1186 @@
+---
+openapi: 3.0.2
+info:
+  title: veda
+  description: "# Introduction\n\nVeda is DigitalGlobe’s platform for machine learning\
+    \ with satellite data. It provides tools for generating, organizing, and publishing\
+    \ training data and models. \n\nPython users can use the PyVeda module to work\
+    \ with Veda \n\n# Getting access to GBDX\n\nAccess to Veda requires GBDX credentials.\
+    \ You can sign up for a GBDX account at https://gbdx.geobigdata.io.\n\nYour GBDX\
+    \ credentials are found under your account profile.\n\nFor questions or troubleshooting\
+    \ email GBDX-Support@digitalglobe.com.\n\n# Overall Concepts\n\nVeda is designed\
+    \ to store training data and models related to Machine Learning from satellite\
+    \ imagery.\n\nThe general concept is to use Veda to either find/search for existing\
+    \ training datasets or create new training datasets. These training sets consist\
+    \ of image/label pairs for that are stored inside veda and made available via\
+    \ its API. Additionally Veda supports the same pattern to save and retrieve trained\
+    \ models.\n\nThe goal is to provide a ML system for making access to training\
+    \ data and models as easy as possible. Additionally its goals are to provide ways\
+    \ for users to enhance models and training data through model iteration (verification\
+    \ & validation of model results).\n\nVeda is not a machine learning library. It\
+    \ provides the infrastructure for other machine learning system: storage, discovery\
+    \ and access."
+  version: 1.0.0
+paths:
+  /search:
+    summary: Search for DataSets
+    description: Search for DataSets. Payload follows ElasticSearch syntax
+    post:
+      tags:
+      - DataSets
+      summary: Search for DataSets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchQuery'
+        required: true
+      responses:
+        200:
+          description: Returned search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataSet'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+  /data:
+    get:
+      tags:
+      - DataSets
+      summary: Get all datasets
+      responses:
+        200:
+          description: Retrieved DataSets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataSet'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    post:
+      tags:
+      - DataSets
+      summary: Create a new DataSet
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataSet'
+        required: true
+      responses:
+        200:
+          description: Created a new dataset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSet'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+  /models/search:
+    summary: Search for models
+    post:
+      tags:
+      - Models
+      summary: Search for Models
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Search parameters:
+                value: '{}'
+      responses:
+        200:
+          description: Returned search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataSet'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+  /models/{modelId}/download:
+    summary: Download the Model
+    description: Returns the Model as a tar.gz file.
+    get:
+      tags:
+      - Models
+      summary: Download a Model
+      description: The model is returned in a .tar.gz file.
+      responses:
+        200:
+          description: Returned a Model file
+          content:
+            application/octet-stream:
+              examples:
+                model.tar.gz:
+                  summary: The model stored in a tarball
+                  value: '"Content-Disposition": "attachment; filename=model.tar.gz"'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+  /:
+    summary: Displays README
+    get:
+      tags:
+      - Help and Info
+      summary: Get the Veda README
+      responses:
+        200:
+          description: Returned the README from the Veda repo
+          content:
+            text/xml:
+              schema:
+                type: string
+  /openapi.yaml:
+    summary: OpenAPI spec
+    get:
+      tags:
+      - Help and Info
+      summary: OpenAPI Spec
+      responses:
+        200:
+          description: Returned OpenAPI spec
+          content:
+            application/yaml:
+              examples:
+                OpenAPI Spec:
+                  value: OpenAPI Spec in yaml format
+  /data/{datasetId}:
+    get:
+      tags:
+      - DataSets
+      description: Get a DataSet
+      responses:
+        200:
+          description: Retrieved a DataSet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSet'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    put:
+      tags:
+      - DataSets
+      description: Update a DataSet
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataSet'
+        required: true
+      responses:
+        200:
+          description: Updated a DataSet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSet'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    post:
+      tags:
+      - DataSets
+      description: Add data to a DataSet
+      requestBody:
+        content:
+          multipart/form-data: {}
+        required: true
+      responses:
+        200:
+          description: added a DataSet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSet'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    delete:
+      tags:
+      - DataSets
+      description: Delete a DataSet
+      responses:
+        200:
+          description: Deleted a DataSet
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    parameters:
+    - name: datasetId
+      in: path
+      description: The id of a specific DataSet
+      required: true
+      schema:
+        type: integer
+  /data/{datasetId}/datapoints:
+    get:
+      tags:
+      - DataSets
+      - DataPoints
+      summary: Get all DataPoints in a DataSet
+      parameters:
+      - name: datasetId
+        in: path
+        required: true
+      - name: includeLinks
+        in: query
+        description: Include the Links in the returned records, default is false
+        required: false
+        schema:
+          type: boolean
+      - name: classes
+        in: query
+        description: 'List of classes to limit the returned points to. Format is a
+          comma-delimited string: "buildings,cars,trees"'
+        schema:
+          type: string
+      - name: offset
+        in: query
+        description: Start returning records at this offset in the index.
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        description: Limit the number of DataPoints returned, default is 1000
+        schema:
+          type: integer
+      - name: shuffle
+        in: query
+        description: Shuffle the order of the DataPoints returned.
+        schema:
+          type: boolean
+      responses:
+        200:
+          description: Retrieved datapoints
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataPoint'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    parameters:
+    - name: datasetId
+      in: path
+      required: true
+  /data/{datasetId}/ids:
+    description: Get paginated IDs of DataPoints
+    get:
+      tags:
+      - DataPoints
+      - DataSets
+      summary: Get all DataPoint IDs in a DataSet
+      parameters:
+      - name: pageSize
+        in: query
+        description: Number of IDs to fetch per page, default is 1000
+        required: false
+        schema:
+          type: integer
+      - name: pageID
+        in: query
+        description: Paging API page ID, used to fetch the next page.
+        required: false
+        schema:
+          type: string
+      responses:
+        200:
+          description: Retrieved a page of DataPoint IDs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DataPoint'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+  /data/{datasetId}/publish:
+    summary: Publish a DataSet
+    description: Publishing a DataSet makes it public and visible to other users.
+    put:
+      tags:
+      - DataSets
+      summary: Publish a DataSet
+      description: Publishing a DataSet makes it public and visible to other users.
+      responses:
+        200:
+          description: Published the DataSet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSet'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+  /data/{datasetId}/release:
+    summary: Create a new Release for this DataSet
+    post:
+      tags:
+      - DataSets
+      summary: Create a Release
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+            examples:
+              Version:
+                value: '{ "version": "1.0.0"}'
+      responses:
+        200:
+          description: Created a release
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSet'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+  /data/bulk:
+    summary: Bulk upload a tar.gz file
+    post:
+      tags:
+      - DataSets
+      summary: Bulk upload data
+      requestBody:
+        content:
+          application/json:
+            examples:
+              Bulk Upload Options:
+                value: |-
+                  {
+                      "metadata": "foo",
+                      "options": "bar"
+                  }
+        required: true
+      responses:
+        200:
+          description: Submitted a bulk import job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataSet'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+  /datapoints/:
+    post:
+      tags:
+      - DataPoints
+      summary: Create a new DataPoint
+      parameters:
+      - name: includeLinks
+        in: query
+        description: Whether to return Links in the response records. Default is false.
+        schema:
+          type: boolean
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataPoint'
+        required: true
+      responses:
+        200:
+          description: Created a new datapoint
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPoint'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+  /datapoints/{datapointId}:
+    summary: Operations for DataPoints
+    get:
+      tags:
+      - DataPoints
+      summary: Retrieve a DataPoint
+      parameters:
+      - name: includeLinks
+        in: query
+        description: Sets whether Links should be returned in the response. Default
+          is false
+        schema:
+          type: boolean
+      - name: classes
+        in: query
+        description: 'List of classes to filter the returned records to. Format is
+          comma-delimited text: ''buildings,cars,trees'''
+        schema:
+          type: string
+      responses:
+        200:
+          description: Retrieved a DataPoint object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPoint'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    put:
+      tags:
+      - DataPoints
+      summary: Modify a DataPoint
+      responses:
+        200:
+          description: Modified a DataPoint
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataPoint'
+  /datapoints/{datapointId}/image.tif:
+    summary: Get the image for a DataPoint
+    get:
+      tags:
+      - DataPoints
+      summary: Get the image for a DataPoint
+      responses:
+        200:
+          description: Retrieved the DataPoint image
+          content:
+            application/octet-stream:
+              examples:
+                Image as tiff file:
+                  description: 'The image is returned as a tiff file using content-disposition:
+                    attachement'
+                  value: '"Content-Disposition": `attachment; filename=<datapointId>.tif`'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+  /docs:
+    get:
+      tags:
+      - Help and Info
+      summary: Get the API documentation
+      responses:
+        200:
+          description: Retrieved the API documentation page
+          content:
+            text/xml:
+              examples:
+                API Documentation:
+                  value: ReDoc documentation of the Veda API
+  /models:
+    get:
+      tags:
+      - Models
+      summary: Get all models
+      parameters:
+      - name: addLinks
+        in: query
+        description: This parameter, when set to true, will included the "links" in
+          the results.
+        required: false
+        schema:
+          type: string
+      - name: mltype
+        in: query
+        description: 'mltype to restrict results to. '
+        required: false
+        schema:
+          enum:
+          - classification
+          - object detection
+          - segmentation
+      responses:
+        200:
+          description: Retrieved a list of models
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Model'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    post:
+      tags:
+      - Models
+      summary: Create a new model
+      responses:
+        200:
+          description: Added a model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+  /models/{modelId}:
+    get:
+      tags:
+      - Models
+      summary: Get a Model
+      description: Gets a Model object (metadata only). Use the /download endpoint
+        to get the actual model.
+      responses:
+        200:
+          description: Retrieved a Model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    put:
+      tags:
+      - Models
+      summary: Update a Model
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Model'
+        required: true
+      responses:
+        200:
+          description: Updated the Model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    delete:
+      tags:
+      - Models
+      summary: Delete a Model
+      responses:
+        200:
+          description: Deleted the Model
+        401:
+          description: Access forbidden - invalid GBDX credentials
+    parameters:
+    - name: modelId
+      in: path
+      required: true
+  /models/{modelId}/deploy:
+    summary: Deploy a model
+    post:
+      tags:
+      - Models
+      summary: Deploy a model
+      requestBody:
+        content:
+          application/json:
+            examples:
+              deploy metadata:
+                value: ???
+        required: true
+      responses:
+        200:
+          description: Deployed a model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Model'
+        401:
+          description: Access forbidden - invalid GBDX credentials
+components:
+  schemas:
+    Model:
+      description: A ML or Statistical Model stored in Veda
+    DataPoint:
+      description: An individual datapoint in a DataSet
+      required:
+      - Type
+      - Geometry
+      - Properties
+      properties:
+        Type:
+          type: string
+        Geometry:
+          $ref: '#/components/schemas/Geometry'
+        Properties:
+          $ref: '#/components/schemas/Properties-DataPoint'
+      example: |-
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "MultiPolygon",
+                "coordinates": [
+                    [
+                        [
+                            [
+                                -97.74107094008983,
+                                30.270496899310096
+                            ],
+                            [
+                                -97.74107094008983,
+                                30.271269590650377
+                            ],
+                            [
+                                -97.74029824874955,
+                                30.271269590650377
+                            ],
+                            [
+                                -97.74029824874955,
+                                30.270496899310096
+                            ],
+                            [
+                                -97.74107094008983,
+                                30.270496899310096
+                            ]
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "mlType": "classification",
+                "cached": "true",
+                "dataset_id": "e91fb673-4a31-4221-a8ef-01706b6d9b63",
+                "bounds": [
+                    -97.74107094008983,
+                    30.270496899310096,
+                    -97.74029824874955,
+                    30.271269590650377
+                ],
+                "tile_coords": [
+                    "962",
+                    "179"
+                ],
+                "sha": "43bfd80b6f11b85bc23b90509e1f7a6e908c8581c2a366c68e6784d86e4e4095",
+                "queue": "b7286dlg9ma5",
+                "rda_template": "adcee8c20924d34327129b7bbca94023830d9092ea73f0ec8f8261608802993e",
+                "id": "ae91f7df-ae37-4d31-9506-d9176f50403c",
+                "label": {
+                    "building": 0
+                },
+                "links": {
+                    "self": {
+                        "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c"
+                    },
+                    "delete": {
+                        "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c",
+                        "method": "DELETE"
+                    },
+                    "update": {
+                        "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c",
+                        "method": "PUT"
+                    },
+                    "image": {
+                        "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c/image.tif"
+                    }
+                }
+            }
+        }
+    Geometry:
+      description: |-
+        Geojson Geometry
+
+        See https://tools.ietf.org/html/rfc7946
+
+        If used in a datapoint with no georeferencing, geometry will be null
+    Label-Segmentation: {}
+    Label-Object-Detection: {}
+    Label-Classification: {}
+    Bounds:
+      title: Root Type for Bounds
+      description: |-
+        Geospatial bounding box of an object in degrees
+
+        An array of form [ left, bottom, right, top ]
+
+        If the object has no geospatial information, bounds is null
+      required:
+      - box
+      type: array
+      items:
+        format: double
+        type: number
+      properties:
+        box:
+          type: array
+          items:
+            type: number
+      example: |-
+        [
+            -97.74107094008983,
+            30.270496899310096,
+            -97.74029824874955,
+            30.271269590650377
+        ]
+    DataSet:
+      description: An individual datapoint in a DataSet
+      required:
+      - Type
+      - Geometry
+      - Properties
+      properties:
+        Type:
+          type: string
+        Geometry:
+          $ref: '#/components/schemas/Geometry'
+        Properties:
+          $ref: '#/components/schemas/Properties-DataPoint'
+      example: |-
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "MultiPolygon",
+                "coordinates": [
+                    [
+                        [
+                            [
+                                -97.767934,
+                                30.265703
+                            ],
+                            [
+                                -97.767934,
+                                30.271354
+                            ],
+                            [
+                                -97.733246,
+                                30.271354
+                            ],
+                            [
+                                -97.733246,
+                                30.265703
+                            ],
+                            [
+                                -97.767934,
+                                30.265703
+                            ]
+                        ]
+                    ]
+                ]
+            },
+            "properties": {
+                "mlType": "classification",
+                "image_refs": [
+                    {
+                        "template": "adcee8c20924d34327129b7bbca94023830d9092ea73f0ec8f8261608802993e",
+                        "node": "tile_size"
+                    }
+                ],
+                "classes": [
+                    "building"
+                ],
+                "dtype": "int8",
+                "userId": "auth0|5ac52c560043574440853f22",
+                "imshape": [
+                    "3",
+                    "256",
+                    "256"
+                ],
+                "releases": {},
+                "partition": [
+                    "100",
+                    "0",
+                    "0"
+                ],
+                "sensors": [
+                    "DraImage"
+                ],
+                "public": "true",
+                "queues": [
+                    "veda-e91fb673-4a31-4221-a8ef-01706b6d9b63-b7286dlg9ma5"
+                ],
+                "bounds": [
+                    -97.767934,
+                    30.265703,
+                    -97.733246,
+                    30.271354
+                ],
+                "name": "Austin Buildings Classification",
+                "id": "e91fb673-4a31-4221-a8ef-01706b6d9b63",
+                "count": 250,
+                "percent_cached": 100,
+                "links": {
+                    "self": {
+                        "href": "https://veda-api-development.geobigdata.io/data/e91fb673-4a31-4221-a8ef-01706b6d9b63"
+                    },
+                    "update": {
+                        "href": "https://veda-api-development.geobigdata.io/data/e91fb673-4a31-4221-a8ef-01706b6d9b63",
+                        "method": "PUT"
+                    },
+                    "publish": {
+                        "href": "https://veda-api-development.geobigdata.io/data/e91fb673-4a31-4221-a8ef-01706b6d9b63/publish",
+                        "method": "PUT"
+                    },
+                    "delete": {
+                        "href": "https://veda-api-development.geobigdata.io/data/e91fb673-4a31-4221-a8ef-01706b6d9b63",
+                        "method": "DELETE"
+                    },
+                    "create": {
+                        "href": "https://veda-api-development.geobigdata.io/datapoints",
+                        "method": "POST"
+                    },
+                    "release": {
+                        "href": "https://veda-api-development.geobigdata.io/data/e91fb673-4a31-4221-a8ef-01706b6d9b63/release",
+                        "method": "POST"
+                    }
+                }
+            }
+        }
+    Properties-DataSet:
+      description: Properties of the DataPoint object
+      required:
+      - mltype
+      - cached
+      - dataset_id
+      - bounds
+      - id
+      - userId
+      - dtype
+      - imshape
+      - public
+      - queues
+      - name
+      properties:
+        mltype:
+          description: Type of machine learning algorithm - classification, object
+            detection, or segmentation
+          enum:
+          - classification
+          - object detection
+          - segmentation
+        cached:
+          description: Status of the cached image - if false the image has not been
+            generated yet.
+          type: boolean
+        dataset_id:
+          description: guid of the parent dataset
+          type: string
+        bounds:
+          $ref: '#/components/schemas/Bounds'
+        id:
+          description: ID of this DataSet
+          type: string
+        userId:
+          description: ID of the user who created the data set.
+          type: string
+        image_refs:
+          description: List of image references used to generate images in this collection
+          type: array
+          items:
+            $ref: '#/components/schemas/Image_Reference'
+        classes:
+          description: List of class names used in the image. If a collection is initialized
+            with a list of class names, then those class names will be locked and
+            no other classes will be added when importing data.
+          type: array
+          items:
+            type: string
+        dtype:
+          description: NumPy dtype to be used for the images
+          type: string
+        imshape:
+          description: Image array shape, in [bands, columns, rows]
+          type: array
+          items:
+            type: integer
+        releases:
+          description: List of releases generated for this collection
+          type: array
+          items:
+            $ref: '#/components/schemas/Release'
+        partition:
+          description: Default partition of [train, validate, test] data to use when
+            creating VedaBases in PyVeda. Values are the precentage of each group,
+            totalling to 100.
+          type: array
+          items:
+            type: integer
+        public:
+          description: Whether this collection is visible to the public (published)
+          type: boolean
+        queues:
+          description: SQS queues used to generate images in this collection
+          type: array
+          items:
+            type: string
+        name:
+          description: Name of this collection
+          type: string
+        count:
+          description: Number of DataPoints in this collection
+          type: integer
+        percent_cached:
+          description: Percentage of images that are cached
+          type: integer
+        description:
+          description: Description of this collection
+          type: string
+      example: |-
+        {
+                "mlType": "classification",
+                "image_refs": [
+                    {
+                        "template": "adcee8c20924d34327129b7bbca94023830d9092ea73f0ec8f8261608802993e",
+                        "node": "tile_size"
+                    }
+                ],
+                "classes": [
+                    "building"
+                ],
+                "dtype": "int8",
+                "userId": "auth0|5ac52c560043574440853f22",
+                "imshape": [
+                    3,
+                    256,
+                    256
+                ],
+                "releases": {},
+                "partition": [
+                    100,
+                    0,
+                    0
+                ],
+                "sensors": [
+                    "DraImage"
+                ],
+                "public": "true",
+                "queues": [
+                    "veda-e91fb673-4a31-4221-a8ef-01706b6d9b63-b7286dlg9ma5"
+                ],
+                "bounds": [
+                    -97.767934,
+                    30.265703,
+                    -97.733246,
+                    30.271354
+                ],
+                "name": "Austin Buildings Classification",
+                "id": "e91fb673-4a31-4221-a8ef-01706b6d9b63",
+                "count": 250,
+                "percent_cached": 100,
+                "links": {
+                    "self": {
+                        "href": "https://veda-api-development.geobigdata.io/data/e91fb673-4a31-4221-a8ef-01706b6d9b63"
+                    },
+                    "update": {
+                        "href": "https://veda-api-development.geobigdata.io/data/e91fb673-4a31-4221-a8ef-01706b6d9b63",
+                        "method": "PUT"
+                    },
+                    "publish": {
+                        "href": "https://veda-api-development.geobigdata.io/data/e91fb673-4a31-4221-a8ef-01706b6d9b63/publish",
+                        "method": "PUT"
+                    },
+                    "delete": {
+                        "href": "https://veda-api-development.geobigdata.io/data/e91fb673-4a31-4221-a8ef-01706b6d9b63",
+                        "method": "DELETE"
+                    },
+                    "create": {
+                        "href": "https://veda-api-development.geobigdata.io/datapoints",
+                        "method": "POST"
+                    },
+                    "release": {
+                        "href": "https://veda-api-development.geobigdata.io/data/e91fb673-4a31-4221-a8ef-01706b6d9b63/release",
+                        "method": "POST"
+                    }
+                }
+            }
+    Image_Reference:
+      title: Root Type for Image_Reference
+      description: A reference of an image source, consisting of RDA template and
+        node IDs.
+      type: object
+      properties:
+        template:
+          description: RDA template ID used to generate the image
+          type: string
+        node:
+          description: RDA graph node rendered for the image
+          type: string
+      example: |-
+        {
+            "template": "adcee8c20924d34327129b7bbca94023830d9092ea73f0ec8f8261608802993e",
+            "node": "tile_size"
+        }
+    Release:
+      description: A Veda Release object TBD
+    Properties-DataPoint:
+      description: Properties of the DataPoint object
+      required:
+      - mltype
+      - cached
+      - dataset_id
+      - bounds
+      - sha
+      - id
+      - label
+      properties:
+        mltype:
+          description: Type of machine learning algorithm - classification, object
+            detection, or segmentation
+          enum:
+          - classification
+          - object detection
+          - segmentation
+        cached:
+          description: Status of the cached image - if false the image has not been
+            generated yet.
+          type: boolean
+        dataset_id:
+          description: guid of the parent dataset
+          type: string
+        bounds:
+          $ref: '#/components/schemas/Bounds'
+        tile_coords:
+          description: Coordinates of a tile when tiles are generated using streaming,
+            in form of [column, row]. Origin is top left.
+          type: array
+          items:
+            type: integer
+        sha:
+          description: Hash of datapoint object, used internally only.
+          type: string
+        queue:
+          description: ID of SQS queue for generating this datapoint's image
+          type: string
+        rda_template:
+          description: RDA template used to generate the image
+          type: string
+        id:
+          description: ID of this datapoint
+          type: string
+        label:
+          description: Label for this datapoint
+          oneOf:
+          - $ref: '#/components/schemas/Label-Classification'
+          - $ref: '#/components/schemas/Label-Object-Detection'
+          - $ref: '#/components/schemas/Label-Segmentation'
+        links:
+          $ref: '#/components/schemas/Links'
+          description: URLs for resources related to this link
+      example: |-
+        {
+                "mlType": "classification",
+                "cached": "true",
+                "dataset_id": "e91fb673-4a31-4221-a8ef-01706b6d9b63",
+                "bounds": [
+                    -97.74107094008983,
+                    30.270496899310096,
+                    -97.74029824874955,
+                    30.271269590650377
+                ],
+                "tile_coords": [
+                    "962",
+                    "179"
+                ],
+                "sha": "43bfd80b6f11b85bc23b90509e1f7a6e908c8581c2a366c68e6784d86e4e4095",
+                "queue": "b7286dlg9ma5",
+                "rda_template": "adcee8c20924d34327129b7bbca94023830d9092ea73f0ec8f8261608802993e",
+                "id": "ae91f7df-ae37-4d31-9506-d9176f50403c",
+                "label": {
+                    "building": 0
+                },
+                "links": {
+                    "self": {
+                        "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c"
+                    },
+                    "delete": {
+                        "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c",
+                        "method": "DELETE"
+                    },
+                    "update": {
+                        "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c",
+                        "method": "PUT"
+                    },
+                    "image": {
+                        "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c/image.tif"
+                    }
+                }
+            }
+        }
+    Links:
+      title: Root Type for Links
+      description: URLs to access CRUD operations on this object. Only return when
+        `links=True` is passed.
+      required:
+      - update
+      - self
+      type: object
+      properties:
+        self:
+          $ref: '#/components/schemas/Link'
+          description: URL of the current resource
+          properties:
+            href:
+              type: string
+        delete:
+          $ref: '#/components/schemas/Link'
+          description: Delete Endpoint
+          properties:
+            href:
+              type: string
+            method:
+              type: string
+        update:
+          $ref: '#/components/schemas/Link'
+          description: Update URL
+          properties:
+            href:
+              type: string
+            method:
+              type: string
+        image:
+          $ref: '#/components/schemas/Link'
+          description: Image URL
+          properties:
+            href:
+              type: string
+      example: |-
+        {
+            "self": {
+                "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c"
+            },
+            "delete": {
+                "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c",
+                "method": "DELETE"
+            },
+            "update": {
+                "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c",
+                "method": "PUT"
+            },
+            "image": {
+                "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c/image.tif"
+            }
+        }
+    Link:
+      title: Root Type for Link
+      description: Object represting an API url endpoint.
+      required:
+      - href
+      type: object
+      properties:
+        href:
+          description: URL of this resource
+          type: string
+        method:
+          enum:
+          - GET
+          - PUT
+          - DELETE
+          - POST
+      example: |-
+        {
+            "href": "https://veda-api-development.geobigdata.io/datapoints/ae91f7df-ae37-4d31-9506-d9176f50403c",
+            "method": "PUT"
+        }
+    SearchQuery:
+      title: Root Type for SearchQuery
+      description: The root of the SearchQuery type's schema.
+      type: object
+      properties:
+        query:
+          description: Query terms to search for
+          type: string
+        bounds:
+          $ref: '#/components/schemas/Bounds'
+          description: Geographic bounds to limit searches to (returns all objects
+            contained by or intersecting the given bounding box)
+      example: |-
+        {
+            "query": "windmills",
+            "bounds": [-180, -90, 180, 90]
+        }
+tags:
+- name: DataSets
+  description: DataSets are collections of DataPoints.
+- name: DataPoints
+  description: 'DataPoints are training data samples: image/label pairs with metadata'
+- name: Models
+  description: Models are machine learning models that have been imported to share
+    or deploy to Sagemaker.
+- name: Help and Info
+  description: ""
