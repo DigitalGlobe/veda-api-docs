@@ -557,9 +557,9 @@ paths:
                 $ref: '#/components/schemas/Model'
         401:
           description: Access forbidden - invalid GBDX credentials
-  /datapoints/{datapointId}/image.{mime}:
+  /datapoints/{datapointId}/image.tif:
     summary: Get the image for a DataPoint
-    description: Both .png and .tif images are supported.
+    description: Returns a tif image of the datapoint.
     get:
       tags:
       - DataPoints
@@ -572,7 +572,7 @@ paths:
               examples:
                 Image as tiff file:
                   description: 'The image is returned as a tiff file using content-disposition:
-                    attachement'
+                    attachment'
                   value: '"Content-Disposition": `attachment; filename=<datapointId>.tif`'
         401:
           description: Access forbidden - invalid GBDX credentials
@@ -580,12 +580,6 @@ paths:
     - name: datapointId
       in: path
       description: The datapoint ID to fetch an image for.
-      required: true
-      schema:
-        type: string
-    - name: mime
-      in: path
-      description: The mimetype for the image, png or tif
       required: true
       schema:
         type: string
